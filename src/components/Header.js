@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import styled from 'styled-components';
 
-import keepLogo from '../assets/keep-logo.png';
+import keepLogo from '../keep.png';
 import reactLogo from '../logo.svg';
-import fireLogo from '../assets/firebase-logo.png';
+import firebaseLogo from '../firebase.png';
 
 
 const Nav = styled.nav`
@@ -20,7 +20,8 @@ const ImgWrap = styled.div`
 `;
 
 const Img = styled.img `
-width;40px`
+width;40px`;
+
 const Header = () => {
     return (
 
