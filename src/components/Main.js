@@ -1,5 +1,8 @@
 import React, {useState} from "react";
 import styled from "styled-components";
+import { useRef, useEffect } from "react";
+import Note from "./Note";
+import firebaseConfig from '../Firebase';
 
 
 const NoteInput = styled.form`
@@ -25,6 +28,8 @@ const Title = styled.input`
       opacity:1;
     }
   `
+
+
 const TextArea = styled.textarea`
       border:none;
       color:#000;
@@ -42,43 +47,122 @@ const TextArea = styled.textarea`
         opacity:1;
       }
       `
+const NoteCon = styled.div`
+padding:20px;
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+`
+
+const autoGrow = (elem) => {
+
+  elem.current.style.height = "5px";
+  elem.current.style.height = 10 + elem.current.scrollHeight + "px";
+};
 
 
-const Main = () => {
-   const [showInput, setShowInput] = useState(false);
-   const [textValue, setTextValue] = useState("");
-   const [titleValue, setTitleValue] = useState("");
+
+const Main = (props) => {
+
+   const [showinput, setShowinput] = useState("");
+   const [textvalue, setTextValue] = useState("");
+   const [titlevalue, setTitlevalue] = useState("");
+   const textAreaRef = useRef(null);
+   const [textFocused, setTextFocused] = useState(false);
+   const [titleFocused, setTitleFocused] = useState(false);
+   const [notes, setNotes] = useState([]);
+
+
+const blurOut = () => {
+  if (!textFocused && !titleFocused) {
+    if (textvalue !== "" || titlevalue !== "") {
+      setShowinput(false);
+      let noteObj = {
+        title: titlevalue,
+        text: textvalue,
+      };
+      setTextValue("");
+      setTitlevalue("");
+      try {
+        setNotes([...notes, noteObj]);
+        const db = firebaseConfig.database().ref("data");
+        db.push().set(noteObj);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+};
+
+const getData = () => {
+  let notesArr = [];
+  try {
+    const db = firebaseConfig.database().ref("data");
+    db.orderByValue().once("value", (snapshot) => {
+      snapshot.forEach((note) => {
+         console.log(notes)
+        // setNotes([...notes, note.val()])
+        notesArr.push(note.val());
+      });
+
+      if (notesArr.length !== 0) {
+        setNotes(notesArr);
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+useEffect(() => {
+  getData();
+}, []);
     return (
       <main
-        textValue={textValue}
-        titleValue={titleValue}
-        showInput={showInput}
-        onShowInput={(state) => setShowInput(state)}
+        textvalue={textvalue}
+        titlevalue={titlevalue}
+        showinput={showinput}
+        onShowinput={(state) => setShowinput(state)}
         onTextChange={(state) => setTextValue(state)}
-        onTitleChange={(state) => setTitleValue(state)}
+        onTitleChange={(state) => setTitlevalue(state)}
+        onTextFocus={(state) => setTextFocused(state)}
+        onTitleFocus={(state) => setTitleFocused(state)}
+        onFocus={() => props.onTitleFocus(true)}
+        onBlur={() => props.onTitleFocus(false)}
+
       >
+
         <NoteInput action="">
-          {this.props.showInput ? (
+          {props.showinput ? (
             <Title
               type="text"
               name=""
               id=""
               placeholder="Title"
-              value={this.props.titleValue}
-              onFocus={() => this.props.onTitleFocus(true)}
-              onBlur={() => this.props.onTitleFocus(false)}
-              onChange={(e) => this.props.onTitleChange(e.target.value)}
+              value={props.titlevalue}
+              onFocus={() => props.onTitleFocus(true)}
+              onBlur={() => props.onTitleFocus(false)}
+              onChange={(e) => props.onTitleChange(e.target.value)}
+              notes={notes}
             />
           ) : (
             ""
           )}{" "}
-          <TextArea name="" id="" cols="30" rows="1"
+          <NoteCon notes={notes} />
+          <TextArea
+            name=""
+            id=""
+            cols="30"
+            rows="1"
             placeholder="Take a note..."
-            value={this.props.textValue}
-            onFocus={()=> {
-              this.props.onShowInput(true);
+            value={props.textvalue}
+            onFocus={() => {
+              props.onShowinput(true);
+              textAreaRef.current.focus();
             }}
-            onChange={(e)=>this.props.onTextChange(e.target.value)}
+            onInput={() => autoGrow(textAreaRef)}
+            ref={textAreaRef}
+            onChange={(e) => props.onTextChange(e.target.value)}
+            onBlur={() => props.onTextFocus(false)}
           />
         </NoteInput>
       </main>

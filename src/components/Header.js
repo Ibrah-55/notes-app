@@ -29,10 +29,6 @@ const Header = () => {
         <p>Notes App</p>
         <ImgWrap>
           <Img src={keepLogo} alt="Google keep logo" />
-          <p>+</p>
-          <Img src={reactLogo} alt="React logo"/>
-          <p>+</p>
-          <Img src={firebaseLogo} alt="firebase logo"/>
         </ImgWrap>
       </Nav>
     );
